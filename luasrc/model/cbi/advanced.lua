@@ -337,4 +337,26 @@ end
 end
 end
 
+if nixio.fs.access("/etc/config/nginx")then
+s:tab("nginxconf",translate("nginx"),translate("本页是配置/etc/config/nginx的文档内容。应用保存后自动重启生效"))
+conf=s:taboption("nginxconf",Value,"nginxconf",nil,translate("开头的数字符号（＃）或分号的每一行（;）被视为注释；删除（;）启用指定选项。"))
+conf.template="cbi/tvalue"
+conf.rows=20
+conf.wrap="off"
+conf.cfgvalue=function(t,t)
+return e.readfile("/etc/config/nginx")or""
+end
+conf.write=function(a,a,t)
+if t then
+t=t:gsub("\r\n?","\n")
+e.writefile("/tmp/nginx",t)
+if(luci.sys.call("cmp -s /tmp/nginx /etc/config/nginx")==1)then
+e.writefile("/etc/config/nginx",t)
+luci.sys.call("/etc/init.d/nginx reload >/dev/null")
+end
+e.remove("/tmp/nginx")
+end
+end
+end
+
 return m
